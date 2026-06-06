@@ -1,19 +1,18 @@
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { priceAmount, label, currency } = req.body;
-
-  // Basic validation
-  if (!priceAmount || !label) {
-    return res.status(400).json({ error: 'Missing priceAmount or label' });
-  }
-
   try {
+    const { priceAmount, label, currency } = req.body;
+
+    if (!priceAmount || !label) {
+      return res.status(400).json({ error: 'Missing priceAmount or label' });
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: [
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
       ],
       mode: 'payment',
       success_url: `${req.headers.origin}/success.html`,
-      cancel_url: `${req.headers.origin}/#pricing`,
+      cancel_url:  `${req.headers.origin}/#pricing`,
     });
 
     res.status(200).json({ sessionId: session.id });
@@ -37,4 +36,4 @@ export default async function handler(req, res) {
     console.error('Stripe error:', err.message);
     res.status(500).json({ error: err.message });
   }
-}
+};
