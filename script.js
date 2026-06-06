@@ -272,7 +272,7 @@ contactForm?.addEventListener('submit', async (e) => {
    ============================================================ */
 
 // ── Replace with your real Stripe Publishable Key ──────────────
-const STRIPE_PUBLISHABLE_KEY = 'pk_live_51TfDcnHvkVrI4p4DPAkeaNf2d6QtK4pvruBsp5Xyq001ReY8Jku21vKx28rZ8hhZf1pHioZgKjsQIFGOz8WE8crz00kmmy00LM';
+const STRIPE_PUBLISHABLE_KEY = 'pk_test_REPLACE_WITH_YOUR_KEY';
 // ───────────────────────────────────────────────────────────────
 
 // ── Replace with your actual backend endpoint URL ──────────────
@@ -369,8 +369,8 @@ document.querySelectorAll('[data-price]').forEach(btn => {
   });
 });
 
-// Initialise Stripe after DOM is ready
-document.addEventListener('DOMContentLoaded', initStripe);
+// Stripe.js is loaded just before this script in the body, so it's ready now
+initStripe();
 
 
 /* ============================================================
