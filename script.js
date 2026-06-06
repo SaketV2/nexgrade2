@@ -271,106 +271,36 @@ contactForm?.addEventListener('submit', async (e) => {
    • Any Node.js server: use express as above
    ============================================================ */
 
-// ── Replace with your real Stripe Publishable Key ──────────────
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_REPLACE_WITH_YOUR_KEY';
-// ───────────────────────────────────────────────────────────────
+// ── Stripe Payment Links — direct URLs, no server needed ────────
+const PAYMENT_LINKS = {
+  single: 'https://buy.stripe.com/aFaaEXeJ359t17F8SJ0co00',
+  bundle: 'https://buy.stripe.com/7sYaEX6cxgSbbMj3yp0co01',
+};
+// ────────────────────────────────────────────────────────────────
 
-// ── Replace with your actual backend endpoint URL ──────────────
-const CHECKOUT_SESSION_ENDPOINT = '/api/create-checkout-session';
-// ───────────────────────────────────────────────────────────────
-
-/**
- * Initialises the Stripe client.
- * Stripe.js is loaded in <head> via the official CDN script tag.
- * We only instantiate it if the library loaded successfully.
- */
-let stripe = null;
-
-function initStripe() {
-  if (typeof Stripe === 'undefined') {
-    console.warn('Stripe.js did not load. Check network connectivity.');
-    return;
-  }
-  stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-}
-
-/**
- * Handles a click on any "Book & Pay Now" button.
- * Calls the backend to create a Checkout Session, then
- * redirects the user to Stripe's hosted payment page.
- *
- * @param {string} priceInCents - Amount in AUD cents (e.g. "5500" = $55)
- * @param {string} label        - Product description shown on Stripe checkout
- * @param {HTMLElement} btn     - The button element (for loading state)
- */
-async function handleStripeCheckout(priceInCents, label, btn) {
-  if (!stripe) {
-    alert('Payment system is unavailable. Please contact us directly to book.');
-    return;
-  }
-
-  // Show loading state on button
-  const originalHTML = btn.innerHTML;
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redirecting to payment…';
-
-  try {
-    /**
-     * Step 1: Ask your server to create a Checkout Session.
-     * The server uses the Secret Key (never exposed to the browser)
-     * to call the Stripe API and returns a sessionId.
-     */
-    const response = await fetch(CHECKOUT_SESSION_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        priceAmount: parseInt(priceInCents, 10),
-        label: label,
-        currency: 'aud',
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
-    }
-
-    const { sessionId } = await response.json();
-
-    /**
-     * Step 2: Redirect to Stripe's secure hosted checkout page.
-     * This is the ONLY way card data ever flows — directly from
-     * the user's browser to Stripe's servers. Your site never
-     * touches raw card numbers.
-     */
-    const { error } = await stripe.redirectToCheckout({ sessionId });
-
-    if (error) {
-      // Stripe's own error (e.g. network issue, invalid session ID)
-      console.error('Stripe redirectToCheckout error:', error);
-      alert(`Payment error: ${error.message}. Please try again or contact us.`);
-    }
-
-  } catch (err) {
-    console.error('Checkout session creation failed:', err);
-    alert('Could not start checkout. Please contact us directly to book your session.');
-  } finally {
-    // Always restore button state (unless we successfully redirected)
-    btn.disabled = false;
-    btn.innerHTML = originalHTML;
-  }
-}
-
-// Attach click handlers to all payment buttons
+// Attach click handlers to payment buttons
 document.querySelectorAll('[data-price]').forEach(btn => {
   btn.addEventListener('click', () => {
-    const price = btn.getAttribute('data-price');    // cents, e.g. "5500"
-    const label = btn.getAttribute('data-label');    // e.g. "Single Session — 1hr Tutoring"
-    handleStripeCheckout(price, label, btn);
+    const label = btn.getAttribute('data-label') || '';
+    const isBundle = label.toLowerCase().includes('bundle') ||
+                     btn.getAttribute('data-price') === '25000';
+    const url = isBundle ? PAYMENT_LINKS.bundle : PAYMENT_LINKS.single;
+
+    // Show loading state
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redirecting to payment…';
+
+    // Redirect to Stripe Payment Link
+    window.location.href = url;
+
+    // Restore button after 4s in case user navigates back
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+    }, 4000);
   });
 });
-
-// Stripe.js is loaded just before this script in the body, so it's ready now
-initStripe();
 
 
 /* ============================================================
