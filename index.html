@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Expert K-12 tutoring for Years K–12. Specialising in Maths, English, Science, Business Studies & more. $55/hr. Book your first session today." />
+  <meta name="keywords" content="tutoring, K-12, Years 4-11, maths tutor, Sydney, homework help, exam prep" />
+  <title>NexGrade | K–12 Tutoring | Years K–12 · $55/hr</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Stripe.js (loaded here for PCI compliance — must be on every page using Stripe) -->
+  <script src="https://js.stripe.com/v3/" defer></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ========================================================
+       NAVIGATION
+  ======================================================== -->
+  <header class="navbar" id="navbar">
+    <div class="nav-inner container">
+      <a href="#home" class="nav-logo" aria-label="Home">
+        <span class="logo-mark">N</span>
+        <span class="logo-text">Nex<em>Grade</em></span>
+      </a>
+
+      <nav class="nav-links" id="navLinks" aria-label="Primary navigation">
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+      </nav>
+
+      <a href="#contact" class="btn btn-nav-cta">Book Now</a>
+
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <!-- Mobile menu drawer -->
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+      <nav>
+        <a href="#about" class="mobile-link">About</a>
+        <a href="#services" class="mobile-link">Services</a>
+        <a href="#pricing" class="mobile-link">Pricing</a>
+        <a href="#contact" class="mobile-link">Contact</a>
+      </nav>
+      <a href="#contact" class="btn btn-primary mobile-cta">Book Now</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ========================================================
+         HERO SECTION
+    ======================================================== -->
+    <section class="hero" id="home" aria-label="Hero">
+      <div class="hero-bg-dots" aria-hidden="true"></div>
+
+      <div class="container hero-inner">
+        <div class="hero-content">
+          <div class="hero-badge fade-in-up" style="--delay: 0s">
+            <i class="fa-solid fa-star-of-david"></i>
+            Personalised 1-on-1 Tutoring
+          </div>
+
+          <h1 class="hero-heading fade-in-up" style="--delay: 0.1s">
+            Unlock Your<br />
+            <em>Academic Potential</em>
+          </h1>
+
+          <p class="hero-sub fade-in-up" style="--delay: 0.2s">
+            Expert tutoring for <strong>Years K–12</strong> across Maths, English,
+            Science, Business Studies &amp; more. Build real skills, smash
+            assessments, and gain the confidence to succeed.
+          </p>
+
+          <div class="hero-rate fade-in-up" style="--delay: 0.3s">
+            <span class="rate-amount">$55</span>
+            <span class="rate-unit">/ hour</span>
+          </div>
+
+          <div class="hero-ctas fade-in-up" style="--delay: 0.4s">
+            <a href="#contact" class="btn btn-primary btn-float">
+              Book a Free Trial
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="hero-visual hero-features fade-in-right" style="--delay: 0.2s">
+          <p class="features-eyebrow">What every session includes</p>
+
+          <div class="feature-card fc-1">
+            <div class="fc-icon-wrap">
+              <i class="fa-solid fa-bullseye"></i>
+            </div>
+            <div class="fc-body">
+              <strong>Personalised Lesson Plan</strong>
+              <span>Built around your child's specific gaps, not a one-size-fits-all curriculum.</span>
+            </div>
+            <div class="fc-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+
+          <div class="feature-card fc-2">
+            <div class="fc-icon-wrap">
+              <i class="fa-solid fa-file-lines"></i>
+            </div>
+            <div class="fc-body">
+              <strong>Progress Notes After Every Session</strong>
+              <span>Parents receive a clear summary of what was covered and next steps.</span>
+            </div>
+            <div class="fc-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+
+          <div class="feature-card fc-3">
+            <div class="fc-icon-wrap">
+              <i class="fa-solid fa-clipboard-list"></i>
+            </div>
+            <div class="fc-body">
+              <strong>Exam-Focused Revision</strong>
+              <span>Targeted past paper drilling and strategy when assessments are near.</span>
+            </div>
+            <div class="fc-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+
+          <div class="feature-card fc-4">
+            <div class="fc-icon-wrap">
+              <i class="fa-solid fa-comments"></i>
+            </div>
+            <div class="fc-body">
+              <strong>Direct Communication</strong>
+              <span>Text or WhatsApp between sessions for quick questions. Always responsive.</span>
+            </div>
+            <div class="fc-check"><i class="fa-solid fa-check"></i></div>
+          </div>
+
+          <div class="hero-blob" aria-hidden="true"></div>
+        </div>
+      </div>
+
+      <div class="hero-scroll-hint" aria-hidden="true">
+        <span>Scroll</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+
+      <div class="hero-wave" aria-hidden="true">
+        <svg viewBox="0 0 1440 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <path d="M0,80 C360,120 1080,40 1440,80 L1440,120 L0,120 Z" fill="#F8F7F2"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         TRUST STRIP
+    ======================================================== -->
+    <section class="trust-strip" aria-label="Key achievements">
+      <div class="container trust-inner">
+
+        <div class="trust-item reveal">
+          <span class="trust-num">Band 5/6</span>
+          <span class="trust-label">Maths &amp; Business Studies</span>
+        </div>
+        <div class="trust-divider" aria-hidden="true"></div>
+        <div class="trust-item reveal">
+          <span class="trust-num">Years K–12</span>
+          <span class="trust-label">All Key Subjects</span>
+        </div>
+        <div class="trust-divider" aria-hidden="true"></div>
+        <div class="trust-item reveal">
+          <span class="trust-num">$55</span>
+          <span class="trust-label">Per Hour - No Hidden Fees</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         ABOUT / QUALIFICATIONS
+    ======================================================== -->
+    <section class="about section" id="about" aria-labelledby="about-heading">
+      <div class="container about-inner">
+
+        <div class="about-photo-col reveal">
+          <div class="about-photo-wrap">
+            <!-- Replace src with your actual photo -->
+            <div class="photo-placeholder" aria-label="Photo of Saket">
+              <i class="fa-solid fa-user-tie"></i>
+            </div>
+            <div class="photo-accent" aria-hidden="true"></div>
+          </div>
+
+          <div class="about-quals">
+            <div class="qual-badge reveal">
+              <i class="fa-solid fa-university"></i>
+              <span>UTS Computer Science</span>
+            </div>
+            <div class="qual-badge reveal">
+              <i class="fa-solid fa-award"></i>
+              <span>NSW Working With Children Check</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="about-content">
+          <p class="section-label reveal">About Me</p>
+          <h2 id="about-heading" class="section-heading reveal">
+            A Tutor Who Has <em>Been There</em>
+          </h2>
+          <p class="about-bio reveal">
+            Hey, I'm Saket, a current Bachelor of Computer Science (Honours) student
+            at the <strong>University of Technology Sydney (UTS)</strong>. I'm passionate
+            about helping students in Years K–12 build genuine understanding, not just
+            memorise answers.
+          </p>
+          <p class="about-bio reveal">
+            I recently completed the HSC myself, so I know exactly where students
+            struggle, and more importantly, how to break concepts down in a way
+            that actually clicks. My approach combines structured problem-solving
+            with clear, honest feedback to build lasting confidence.
+          </p>
+
+          <div class="results-grid">
+            <div class="result-card reveal">
+              <div class="rc-subject">Mathematics Standard</div>
+              <div class="rc-band band-6">Band 5</div>
+              <div class="rc-note">Strong quantitative foundation</div>
+            </div>
+            <div class="result-card reveal">
+              <div class="rc-subject">Business Studies</div>
+              <div class="rc-band band-6">Band 5</div>
+              <div class="rc-note">Commerce &amp; strategy concepts</div>
+            </div>
+            <div class="result-card reveal">
+              <div class="rc-subject">Software Engineering</div>
+              <div class="rc-band band-6">Band 5</div>
+              <div class="rc-note">Digital &amp; technology skills</div>
+            </div>
+            <div class="result-card reveal">
+              <div class="rc-subject">Economics</div>
+              <div class="rc-band band-5">Band 5</div>
+              <div class="rc-note">Market &amp; policy analysis</div>
+            </div>
+            <div class="result-card reveal">
+              <div class="rc-subject">English Standard</div>
+              <div class="rc-band band-5">Band 5</div>
+              <div class="rc-note">Essay &amp; analytical writing</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         SERVICES SECTION
+    ======================================================== -->
+    <section class="services section section-alt" id="services" aria-labelledby="services-heading">
+      <div class="services-diagonal" aria-hidden="true"></div>
+
+      <div class="container">
+        <div class="section-header text-center">
+          <p class="section-label reveal">What I Offer</p>
+          <h2 id="services-heading" class="section-heading reveal">
+            Tutoring <em>That Actually Works</em>
+          </h2>
+          <p class="section-sub reveal">
+            Sessions are tailored to each student's specific gaps, learning style,
+            and upcoming assessments, not standardised lesson plans.
+          </p>
+        </div>
+
+        <div class="services-grid">
+
+          <article class="service-card reveal" aria-label="Mathematics tutoring">
+            <div class="sc-icon-wrap">
+              <i class="fa-solid fa-square-root-variable"></i>
+            </div>
+            <h3>Mathematics</h3>
+            <p>From primary school work through to Stage 6 Algebra, Geometry,
+               Trigonometry, and Statistics. HSC Maths Standard exam prep included.</p>
+            <ul class="sc-tags">
+              <li>Years K–12</li><li>Maths Standard</li><li>Exam Prep</li>
+            </ul>
+          </article>
+
+          <article class="service-card reveal" aria-label="English tutoring">
+            <div class="sc-icon-wrap">
+              <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <h3>English</h3>
+            <p>Reading comprehension, analytical and creative writing, essay structure,
+               and text response skills for primary through to Year 11.</p>
+            <ul class="sc-tags">
+              <li>Years K-12</li><li>English Standard</li><li>Comprehension</li>
+            </ul>
+          </article>
+
+          <article class="service-card reveal" aria-label="Science tutoring">
+            <div class="sc-icon-wrap">
+              <i class="fa-solid fa-flask-vial"></i>
+            </div>
+            <h3>Science</h3>
+            <p>Biology, Chemistry, Physics, K-10 Science concepts made
+               approachable. Strong focus on practical skills and report writing.</p>
+            <ul class="sc-tags">
+              <li>Years K–10</li><li>All Sciences</li><li>Lab Reports</li>
+            </ul>
+          </article>
+
+          <article class="service-card reveal" aria-label="Business Studies tutoring">
+            <div class="sc-icon-wrap">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <h3>Business Studies</h3>
+            <p>Operations, marketing, finance, and HSC-style extended response
+               writing. Real-world examples that make theory actually stick.</p>
+            <ul class="sc-tags">
+              <li>Years 9–12</li><li>Extended Responses</li><li>Case Studies</li><li>Business Report</li>
+            </ul>
+          </article>
+
+          <article class="service-card reveal" aria-label="Technology tutoring">
+            <div class="sc-icon-wrap">
+              <i class="fa-solid fa-laptop-code"></i>
+            </div>
+            <h3>Technology &amp; Computing</h3>
+            <p>Digital Technologies, Software Engineering foundations, basic
+               programming logic, and computational thinking for modern learners.</p>
+            <ul class="sc-tags">
+              <li>Years 4–12</li><li>Coding Basics</li><li>Software Design</li>
+            </ul>
+          </article>
+
+          <article class="service-card reveal" aria-label="Exam preparation">
+            <div class="sc-icon-wrap">
+              <i class="fa-solid fa-clipboard-check"></i>
+            </div>
+            <h3>Exam &amp; Assessment Prep</h3>
+            <p>Targeted drilling on past papers, time-management strategies,
+               and structured revision plans for school and selective entry exams.</p>
+            <ul class="sc-tags">
+              <li>K-12</li><li>Past Papers</li><li>Study Skills</li><li>Exam Tips</li>
+            </ul>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         PRICING / STRIPE SECTION
+    ======================================================== -->
+    <section class="pricing section" id="pricing" aria-labelledby="pricing-heading">
+      <div class="container">
+        <div class="section-header text-center">
+          <p class="section-label reveal">Simple Pricing</p>
+          <h2 id="pricing-heading" class="section-heading reveal">
+            One Clear Rate, <em>No Surprises</em>
+          </h2>
+          <p class="section-sub reveal">
+            Transparent, honest pricing. Pay per session or in a bundle to save.
+          </p>
+        </div>
+
+        <div class="pricing-grid">
+
+          <!-- Single Session -->
+          <div class="price-card reveal" aria-label="Single session pricing">
+            <div class="pc-header">
+              <span class="pc-label">Single Session</span>
+              <div class="pc-price">
+                <span class="pc-dollar">$</span>55
+                <span class="pc-per">/ hr</span>
+              </div>
+            </div>
+            <ul class="pc-features">
+              <li><i class="fa-solid fa-check"></i> 60 minute 1-on-1 session</li>
+              <li><i class="fa-solid fa-check"></i> Tailored lesson plan</li>
+              <li><i class="fa-solid fa-check"></i> Progress notes sent after</li>
+              <li><i class="fa-solid fa-check"></i> Cancel 24hrs in advance</li>
+            </ul>
+            <button
+              class="btn btn-primary btn-float"
+              id="stripeBtn-single"
+              data-price="5500"
+              data-label="Single Session — 1hr Tutoring"
+              aria-label="Book and pay for a single session"
+            >
+              Book &amp; Pay Now
+              <i class="fa-solid fa-lock"></i>
+            </button>
+            <p class="pc-secure">
+              <i class="fa-brands fa-stripe"></i> Secured by Stripe
+            </p>
+          </div>
+
+          <!-- Bundle — Featured -->
+          <div class="price-card price-card--featured reveal" aria-label="5-session bundle pricing">
+            <div class="pc-badge">Best Value</div>
+            <div class="pc-header">
+              <span class="pc-label">5-Session Bundle</span>
+              <div class="pc-price">
+                <span class="pc-dollar">$</span>250
+                <span class="pc-per">total</span>
+              </div>
+              <span class="pc-save">Save $25</span>
+            </div>
+            <ul class="pc-features">
+              <li><i class="fa-solid fa-check"></i> 5 × 60-minute sessions</li>
+              <li><i class="fa-solid fa-check"></i> Structured learning roadmap</li>
+              <li><i class="fa-solid fa-check"></i> Weekly progress report</li>
+              <li><i class="fa-solid fa-check"></i> Priority scheduling</li>
+              <li><i class="fa-solid fa-check"></i> Free 15-min check-in call</li>
+            </ul>
+            <button
+              class="btn btn-primary btn-float"
+              id="stripeBtn-bundle"
+              data-price="25000"
+              data-label="5-Session Bundle — Tutoring"
+              aria-label="Book and pay for a 5-session bundle"
+            >
+              Get the Bundle
+              <i class="fa-solid fa-lock"></i>
+            </button>
+            <p class="pc-secure">
+              <i class="fa-brands fa-stripe"></i> Secured by Stripe
+            </p>
+          </div>
+
+          <!-- Trial -->
+          <div class="price-card reveal" aria-label="Trial session pricing">
+            <div class="pc-header">
+              <span class="pc-label">Free Trial</span>
+              <div class="pc-price free">
+                FREE
+              </div>
+            </div>
+            <ul class="pc-features">
+              <li><i class="fa-solid fa-check"></i> 20-min intro session</li>
+              <li><i class="fa-solid fa-check"></i> Diagnose knowledge gaps</li>
+              <li><i class="fa-solid fa-check"></i> Meet your tutor</li>
+              <li><i class="fa-solid fa-check"></i> No commitment required</li>
+            </ul>
+            <a href="#contact" class="btn btn-ghost">
+              Claim Free Trial
+              <i class="fa-solid fa-arrow-right"></i>
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Stripe info callout -->
+        <div class="stripe-info reveal" role="note" aria-label="Payment security information">
+          <i class="fa-solid fa-shield-halved"></i>
+          <p>
+            All payments are processed securely via <strong>Stripe</strong> - your
+            card details are never stored on this site. After checkout you'll receive
+            a confirmation email with session booking instructions.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================================
+         CONTACT / BOOKING SECTION
+    ======================================================== -->
+    <section class="contact section section-alt" id="contact" aria-labelledby="contact-heading">
+      <div class="contact-diagonal" aria-hidden="true"></div>
+
+      <div class="container contact-inner">
+
+        <div class="contact-info">
+          <p class="section-label reveal">Get In Touch</p>
+          <h2 id="contact-heading" class="section-heading reveal">
+            Ready to Get <em>Started?</em>
+          </h2>
+          <p class="reveal">
+            Send a message below or reach out directly. I typically respond
+            within a few hours.
+          </p>
+
+          <div class="contact-methods">
+            <a href="tel:+61400000000" class="contact-method reveal" aria-label="Call Saket">
+              <div class="cm-icon"><i class="fa-solid fa-phone"></i></div>
+              <div class="cm-detail">
+                <strong>Call or Text</strong>
+                <span>+61 422 488 607</span>
+              </div>
+            </a>
+
+            <a href="mailto:saket@example.com" class="contact-method reveal" aria-label="Email Saket">
+              <div class="cm-icon"><i class="fa-solid fa-envelope"></i></div>
+              <div class="cm-detail">
+                <strong>Email</strong>
+                <span>saketv1j4y@gmail.com</span>
+              </div>
+            </a>
+
+            <a href="https://wa.me/61400000000" target="_blank" rel="noopener noreferrer" class="contact-method reveal" aria-label="Message on WhatsApp">
+              <div class="cm-icon"><i class="fa-brands fa-whatsapp"></i></div>
+              <div class="cm-detail">
+                <strong>WhatsApp</strong>
+                <span>Quick reply guaranteed</span>
+              </div>
+            </a>
+          </div>
+        </div>
+
+        <div class="contact-form-wrap reveal">
+          <form
+            id="contactForm"
+            class="contact-form"
+            novalidate
+            aria-label="Booking enquiry form"
+          >
+            <div class="form-row">
+              <div class="form-group">
+                <label for="f-name">Parent / Student Name *</label>
+                <input
+                  type="text"
+                  id="f-name"
+                  name="name"
+                  placeholder="e.g. Emily Johnson"
+                  required
+                  autocomplete="name"
+                />
+                <span class="field-error" aria-live="polite"></span>
+              </div>
+              <div class="form-group">
+                <label for="f-email">Email Address *</label>
+                <input
+                  type="email"
+                  id="f-email"
+                  name="email"
+                  placeholder="you@example.com"
+                  required
+                  autocomplete="email"
+                />
+                <span class="field-error" aria-live="polite"></span>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="f-year">Student's Year Level *</label>
+                <select id="f-year" name="year" required>
+                  <option value="" disabled selected>Select year...</option>
+                  <option value="K">Kindergarden</option>
+                  <option value="1">Year 1</option>
+                  <option value="2">Year 2</option>
+                  <option value="3">Year 3</option>
+                  <option value="4">Year 4</option>
+                  <option value="5">Year 5</option>
+                  <option value="6">Year 6</option>
+                  <option value="7">Year 7</option>
+                  <option value="8">Year 8</option>
+                  <option value="9">Year 9</option>
+                  <option value="10">Year 10</option>
+                  <option value="11">Year 11</option>
+                  <option value="12">Year 12</option>
+                </select>
+                <span class="field-error" aria-live="polite"></span>
+              </div>
+              <div class="form-group">
+                <label for="f-subject">Subject(s) Needed</label>
+                <input
+                  type="text"
+                  id="f-subject"
+                  name="subject"
+                  placeholder="e.g. Maths, English"
+                />
+              </div>
+            </div>
+
+            <div class="form-group form-group--full">
+              <label for="f-message">More Information *</label>
+              <textarea
+                id="f-message"
+                name="message"
+                rows="4"
+                placeholder="What are the key challenges? Any upcoming assessments or exams we should focus on?"
+                required
+              ></textarea>
+              <span class="field-error" aria-live="polite"></span>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary btn-float"
+              id="formSubmitBtn"
+            >
+              Send Enquiry
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+
+            <div class="form-success" id="formSuccess" role="alert" aria-live="polite" hidden>
+              <i class="fa-solid fa-circle-check"></i>
+              <strong>Message sent!</strong> I'll be in touch within a few hours.
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================
+       FOOTER
+  ======================================================== -->
+  <footer class="footer" role="contentinfo">
+    <div class="container footer-inner">
+      <a href="#home" class="footer-logo" aria-label="Back to top">
+        <span class="logo-mark">S</span>
+        <span class="logo-text">Saket<em>Tutoring</em></span>
+      </a>
+      <p class="footer-copy">
+        &copy; <span id="footerYear"></span> NexGrade · Western Sydney &amp; Online
+      </p>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="#about">About</a>
+        <a href="#services">Services</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <!-- Back-to-top button -->
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">
+    <i class="fa-solid fa-chevron-up"></i>
+  </button>
+
+  <script src="script.js"></script>
+</body>
+</html>
