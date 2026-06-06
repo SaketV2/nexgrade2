@@ -272,7 +272,7 @@ contactForm?.addEventListener('submit', async (e) => {
    ============================================================ */
 
 // ── Replace with your real Stripe Publishable Key ──────────────
-const STRIPE_PUBLISHABLE_KEY = 'pk_test_REPLACE_WITH_YOUR_KEY';
+const STRIPE_PUBLISHABLE_KEY = 'pk_live_51TfDcnHvkVrI4p4DPAkeaNf2d6QtK4pvruBsp5Xyq001ReY8Jku21vKx28rZ8hhZf1pHioZgKjsQIFGOz8WE8crz00kmmy00LM';
 // ───────────────────────────────────────────────────────────────
 
 // ── Replace with your actual backend endpoint URL ──────────────
