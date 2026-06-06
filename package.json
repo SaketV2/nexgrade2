@@ -1,7 +1,4 @@
 {
-  "name": "tutoring-site",
-  "version": "1.0.0",
-  "dependencies": {
-    "stripe": "^14.0.0"
-  }
+  "name": "nexgrade",
+  "version": "1.0.0"
 }
