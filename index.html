@@ -15,8 +15,7 @@
   <!-- FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-  <!-- Stripe.js (loaded here for PCI compliance — must be on every page using Stripe) -->
-  <script src="https://js.stripe.com/v3/" defer></script>
+  <!-- Stripe.js loaded without defer so it's ready before script.js runs -->
 
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -639,6 +638,8 @@
     <i class="fa-solid fa-chevron-up"></i>
   </button>
 
+  <!-- Stripe.js must load before script.js — do not add defer or async -->
+  <script src="https://js.stripe.com/v3/"></script>
   <script src="script.js"></script>
 </body>
 </html>
