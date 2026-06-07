@@ -4,10 +4,11 @@
  *   1. Navbar scroll behaviour & active link highlighting
  *   2. Mobile menu toggle
  *   3. Scroll-triggered reveal animations (IntersectionObserver)
- *   4. Contact form validation & submission
- *   5. Stripe frontend checkout integration (with full comments)
+ *   4. Contact form validation & submission (Formspree)
+ *   5. Stripe frontend checkout integration
  *   6. Back-to-top button
  *   7. Footer year
+ *   8. Smooth anchor navigation
  */
 
 'use strict';
@@ -16,21 +17,13 @@
    1. NAVBAR — scroll class & active link highlight
    ============================================================ */
 
-const navbar = document.getElementById('navbar');
+const navbar   = document.getElementById('navbar');
 const navLinks = document.querySelectorAll('.nav-links a');
 
-/**
- * Adds the .scrolled class to the navbar once the user scrolls
- * past 20px — this triggers the border + shadow style in CSS.
- */
 function handleNavScroll() {
   navbar.classList.toggle('scrolled', window.scrollY > 20);
 }
 
-/**
- * Highlights the nav link matching the section currently in view.
- * Uses a simple "which section's top is closest above midscreen" check.
- */
 function highlightActiveNavLink() {
   const sections = document.querySelectorAll('main section[id]');
   const midY = window.scrollY + window.innerHeight / 2;
@@ -55,7 +48,6 @@ window.addEventListener('scroll', () => {
   highlightActiveNavLink();
 }, { passive: true });
 
-// Run once on load in case user lands mid-page
 handleNavScroll();
 highlightActiveNavLink();
 
@@ -72,7 +64,6 @@ function toggleMenu(open) {
   hamburger.classList.toggle('open', open);
   mobileMenu.classList.toggle('open', open);
   hamburger.setAttribute('aria-expanded', String(open));
-  // Prevent body scroll while menu is open
   document.body.style.overflow = open ? 'hidden' : '';
 }
 
@@ -81,12 +72,10 @@ hamburger.addEventListener('click', () => {
   toggleMenu(!isOpen);
 });
 
-// Close menu when any mobile link is clicked
 mobileLinks.forEach(link => {
   link.addEventListener('click', () => toggleMenu(false));
 });
 
-// Close on Escape key
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && mobileMenu.classList.contains('open')) {
     toggleMenu(false);
@@ -99,45 +88,45 @@ document.addEventListener('keydown', e => {
    3. SCROLL-TRIGGERED REVEAL ANIMATIONS
    ============================================================ */
 
-/**
- * IntersectionObserver approach — performant, no scroll listener needed.
- * Elements with the class .reveal, .fade-in-up, or .fade-in-right start
- * invisible (set in CSS) and become visible when they enter the viewport.
- */
 const revealObserver = new IntersectionObserver(
   (entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         entry.target.classList.add('visible');
-        // Unobserve after reveal so we don't keep checking
         revealObserver.unobserve(entry.target);
       }
     });
   },
   {
-    threshold: 0.12,      // Trigger when 12% of element is visible
-    rootMargin: '0px 0px -40px 0px'  // Slightly early trigger
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
   }
 );
 
-// Observe all animated elements
 document.querySelectorAll('.reveal, .fade-in-up, .fade-in-right').forEach(el => {
   revealObserver.observe(el);
 });
 
 
 /* ============================================================
-   4. CONTACT FORM — validation & mock submission
+   4. CONTACT FORM — Formspree
+   ============================================================
+
+   SETUP (2 minutes):
+   1. Go to https://formspree.io and create a free account
+   2. Click "New Form", name it "NexGrade Contact"
+   3. Copy your endpoint — it looks like: https://formspree.io/f/xyzabcde
+   4. Paste it as the value of FORMSPREE_ENDPOINT below
+   5. Deploy — every submission will be emailed to you
+
    ============================================================ */
 
-const contactForm    = document.getElementById('contactForm');
-const formSubmitBtn  = document.getElementById('formSubmitBtn');
-const formSuccess    = document.getElementById('formSuccess');
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/YOUR_FORM_ID';
 
-/**
- * Validates a single field and returns true if valid.
- * Shows an inline error message if invalid.
- */
+const contactForm   = document.getElementById('contactForm');
+const formSubmitBtn = document.getElementById('formSubmitBtn');
+const formSuccess   = document.getElementById('formSuccess');
+
 function validateField(field) {
   const errorEl = field.closest('.form-group')?.querySelector('.field-error');
   let errorMsg = '';
@@ -163,7 +152,7 @@ function validateField(field) {
   return true;
 }
 
-// Live validation on blur
+// Live validation on blur, re-validate on input if field was already invalid
 contactForm?.querySelectorAll('input, select, textarea').forEach(field => {
   field.addEventListener('blur', () => validateField(field));
   field.addEventListener('input', () => {
@@ -174,129 +163,72 @@ contactForm?.querySelectorAll('input, select, textarea').forEach(field => {
 contactForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Validate all fields
+  // Validate all fields first
   const fields = contactForm.querySelectorAll('input, select, textarea');
   let allValid = true;
   fields.forEach(f => { if (!validateField(f)) allValid = false; });
   if (!allValid) return;
 
-  // Disable button and show loading state
+  // Show loading state
   formSubmitBtn.disabled = true;
   formSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending…';
 
-  /**
-   * ─── INTEGRATION POINT ────────────────────────────────────
-   * Replace this mock timeout with a real API call.
-   *
-   * Options:
-   *   A) Formspree:  POST to https://formspree.io/f/YOUR_FORM_ID
-   *   B) Netlify:    Add data-netlify="true" to the <form> tag
-   *   C) EmailJS:    emailjs.send('serviceId', 'templateId', formData)
-   *   D) Custom API: fetch('/api/contact', { method:'POST', body: formData })
-   *
-   * Example with Formspree:
-   *
-   *   const formData = new FormData(contactForm);
-   *   const res = await fetch('https://formspree.io/f/YOUR_FORM_ID', {
-   *     method: 'POST',
-   *     headers: { Accept: 'application/json' },
-   *     body: formData
-   *   });
-   *   if (!res.ok) throw new Error('Submission failed');
-   * ──────────────────────────────────────────────────────────
-   */
-  await new Promise(resolve => setTimeout(resolve, 1800)); // Mock delay
+  try {
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: 'POST',
+      headers: { Accept: 'application/json' },
+      body: new FormData(contactForm),
+    });
 
-  // Show success state
-  contactForm.reset();
-  formSuccess.hidden = false;
-  formSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data?.errors?.[0]?.message || 'Submission failed. Please try again.');
+    }
 
-  // Reset button
-  formSubmitBtn.disabled = false;
-  formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
+    // Success
+    contactForm.reset();
+    formSuccess.hidden = false;
+    formSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Reset button
+    formSubmitBtn.disabled = false;
+    formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
+
+  } catch (err) {
+    // Show the error message on the button so the user knows something went wrong
+    formSubmitBtn.innerHTML =
+      '<i class="fa-solid fa-triangle-exclamation"></i> ' +
+      (err.message || 'Something went wrong. Try emailing directly.');
+    formSubmitBtn.disabled = false;
+  }
 });
 
 
 /* ============================================================
-   5. STRIPE FRONTEND CHECKOUT INTEGRATION
-   ============================================================
-   HOW THIS WORKS (overview):
-   ─────────────────────────
-   Stripe Checkout uses a two-step process:
-     a) Your server creates a Checkout Session and returns a session ID.
-     b) The browser calls stripe.redirectToCheckout({ sessionId }) which
-        sends the user to Stripe's hosted payment page.
-
-   This keeps card data completely off your server (PCI-compliant).
-
-   SETUP CHECKLIST:
-   ────────────────
-   1. Create a Stripe account at https://stripe.com
-   2. Find your Publishable Key in the Dashboard → Developers → API keys
-   3. Replace STRIPE_PUBLISHABLE_KEY below with your real pk_live_... key
-      (use pk_test_... during development)
-   4. Create a backend endpoint (e.g. /api/create-checkout-session) that:
-      - Accepts { priceAmount, label } in the request body
-      - Creates a Stripe Checkout Session server-side using your Secret Key
-      - Returns { sessionId: session.id }
-
-   SERVER-SIDE EXAMPLE (Node.js / Express):
-   ─────────────────────────────────────────
-   const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-
-   app.post('/api/create-checkout-session', async (req, res) => {
-     const { priceAmount, label } = req.body;
-     const session = await stripe.checkout.sessions.create({
-       payment_method_types: ['card'],
-       line_items: [{
-         price_data: {
-           currency: 'aud',
-           product_data: { name: label },
-           unit_amount: priceAmount,          // in cents, e.g. 5500 = $55.00
-         },
-         quantity: 1,
-       }],
-       mode: 'payment',
-       success_url: `${YOUR_DOMAIN}/success.html`,
-       cancel_url:  `${YOUR_DOMAIN}/pricing.html`,
-     });
-     res.json({ sessionId: session.id });
-   });
-
-   DEPLOYING:
-   ──────────
-   • Vercel: use /api/create-checkout-session.js as a serverless function
-   • Netlify: use /.netlify/functions/create-checkout-session
-   • Any Node.js server: use express as above
+   5. STRIPE FRONTEND CHECKOUT
    ============================================================ */
 
-// ── Stripe Payment Links — direct URLs, no server needed ────────
 const PAYMENT_LINKS = {
   single: 'https://buy.stripe.com/aFaaEXeJ359t17F8SJ0co00',
   bundle: 'https://buy.stripe.com/7sYaEX6cxgSbbMj3yp0co01',
 };
-// ────────────────────────────────────────────────────────────────
 
-// Attach click handlers to payment buttons
 document.querySelectorAll('[data-price]').forEach(btn => {
   btn.addEventListener('click', () => {
-    const label = btn.getAttribute('data-label') || '';
+    const label    = btn.getAttribute('data-label') || '';
     const isBundle = label.toLowerCase().includes('bundle') ||
                      btn.getAttribute('data-price') === '25000';
-    const url = isBundle ? PAYMENT_LINKS.bundle : PAYMENT_LINKS.single;
+    const url      = isBundle ? PAYMENT_LINKS.bundle : PAYMENT_LINKS.single;
 
-    // Show loading state
     const originalHTML = btn.innerHTML;
-    btn.disabled = true;
+    btn.disabled  = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redirecting to payment…';
 
-    // Redirect to Stripe Payment Link
     window.location.href = url;
 
-    // Restore button after 4s in case user navigates back
+    // Restore button if user navigates back
     setTimeout(() => {
-      btn.disabled = false;
+      btn.disabled  = false;
       btn.innerHTML = originalHTML;
     }, 4000);
   });
@@ -330,13 +262,12 @@ if (footerYearEl) {
 
 /* ============================================================
    8. SMOOTH ANCHOR NAVIGATION
-   (Handles cases where browser smooth-scroll isn't supported)
    ============================================================ */
 
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
   anchor.addEventListener('click', function (e) {
     const targetId = this.getAttribute('href').slice(1);
-    const target = document.getElementById(targetId);
+    const target   = document.getElementById(targetId);
     if (target) {
       e.preventDefault();
       const navHeight = parseInt(
