@@ -36,8 +36,6 @@ function highlightActiveNavLink() {
   });
 
   navLinks.forEach(link => {
-    // Bug fix #6: when current is '' (scrolled above all sections),
-    // toggle(false) now explicitly removes .active instead of leaving it set.
     link.classList.toggle(
       'active',
       current !== '' && link.getAttribute('href') === `#${current}`
@@ -121,83 +119,81 @@ document.querySelectorAll('.reveal, .fade-in-up, .fade-in-right').forEach(el => 
    4. Paste it as the value of FORMSPREE_ENDPOINT below
    5. Deploy — every submission will be emailed to you
 
+   EMAIL VALIDATION SETUP:
+   1. Sign up free at https://www.abstractapi.com/api/email-verification-validation-api
+   2. Copy your API key and paste it as ABSTRACT_EMAIL_API_KEY below
+   3. Free tier = 100 verifications/month (plenty for an enquiry form)
+   4. Without the key, validation falls back to DNS-only (no fake gmail detection)
+
    ============================================================ */
 
-const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvznzwvv';
+const FORMSPREE_ENDPOINT    = 'https://formspree.io/f/xvznzwvv';
+const ABSTRACT_EMAIL_API_KEY = '9ffb1ceccb794323b12405987122c367'; // ← paste your Abstract API key here
 
 const contactForm   = document.getElementById('contactForm');
 const formSubmitBtn = document.getElementById('formSubmitBtn');
 const formSuccess   = document.getElementById('formSuccess');
 
-// Email format regex — checks structural validity before doing any network call.
+// Email format regex — quick structural check before any network call.
 const EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
 
-// DNS MX record check via Google DNS-over-HTTPS.
-// Returns true if the domain has real mail servers registered in DNS,
-// false if the domain doesn't exist or has no MX records.
-// Fails open (returns true) on network errors so bad connectivity doesn't block real users.
+// ─── LAYER 1: DNS MX check ────────────────────────────────────────────────────
+// Catches completely made-up domains (e.g. fake@notadomain.xyz).
+// Does NOT catch fake accounts on real domains (e.g. fakeperson@gmail.com).
 async function domainCanReceiveMail(domain) {
   try {
-    const res = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`,
-      { headers: { Accept: 'application/json' } }
-    );
-    if (!res.ok) return true; // fail open on HTTP error
+    const res  = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`, { headers: { Accept: 'application/json' } });
+    if (!res.ok) return true;
     const json = await res.json();
-
-    // Status 3 = NXDOMAIN — this domain does not exist at all
-    if (json.Status === 3) return false;
-
-    // If there are MX records, the domain definitely accepts mail
+    if (json.Status === 3) return false; // NXDOMAIN — domain doesn't exist
     if (Array.isArray(json.Answer) && json.Answer.length > 0) return true;
-
-    // No MX records — fall back to checking for an A record.
-    // Some small domains rely on their A record for mail delivery (rare but valid).
-    const aRes = await fetch(
-      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`,
-      { headers: { Accept: 'application/json' } }
-    );
-    if (!aRes.ok) return true;
-    const aJson = await aRes.json();
-    return aJson.Status !== 3 && Array.isArray(aJson.Answer) && aJson.Answer.length > 0;
-  } catch {
-    return true; // fail open on network/CORS error
-  }
+    // fallback: check A record
+    const ar = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`, { headers: { Accept: 'application/json' } });
+    const aj = await ar.json();
+    return aj.Status !== 3 && Array.isArray(aj.Answer) && aj.Answer.length > 0;
+  } catch { return true; } // fail open on network error
 }
 
-// Sync validation for all non-email fields.
+// ─── LAYER 2: Abstract API SMTP check ────────────────────────────────────────
+// Actually pings the mail server to confirm the mailbox exists.
+// Catches fake@gmail.com, madeup@hotmail.com, etc.
+// Returns: 'valid' | 'invalid' | 'unknown' (unknown = server didn't respond definitively)
+async function checkMailboxExists(email) {
+  if (!ABSTRACT_EMAIL_API_KEY) return 'unknown'; // key not set — skip
+  try {
+    const url = `https://emailvalidation.abstractapi.com/v1/?api_key=${ABSTRACT_EMAIL_API_KEY}&email=${encodeURIComponent(email)}`;
+    const res  = await fetch(url);
+    if (!res.ok) return 'unknown';
+    const json = await res.json();
+    // deliverability: "DELIVERABLE" | "UNDELIVERABLE" | "UNKNOWN"
+    if (json.deliverability === 'UNDELIVERABLE') return 'invalid';
+    if (json.deliverability === 'DELIVERABLE')   return 'valid';
+    return 'unknown';
+  } catch { return 'unknown'; } // fail open on network error
+}
+
+// ─── SYNC: non-email fields ───────────────────────────────────────────────────
 function validateField(field) {
   const errorEl = field.closest('.form-group')?.querySelector('.field-error');
-  let errorMsg = '';
-
   field.classList.remove('error');
-
   if (field.required && !field.value.trim()) {
-    errorMsg = 'This field is required.';
-  }
-
-  if (errorMsg) {
     field.classList.add('error');
-    if (errorEl) errorEl.textContent = errorMsg;
+    if (errorEl) errorEl.textContent = 'This field is required.';
     return false;
   }
-
   if (errorEl) errorEl.textContent = '';
   return true;
 }
 
-// Async validation for the email field.
-// Step 1: format check (instant).
-// Step 2: DNS MX lookup to confirm the domain actually exists and can receive mail.
+// ─── ASYNC: email field (format → DNS → SMTP) ────────────────────────────────
 async function validateEmailField(field) {
   const errorEl  = field.closest('.form-group')?.querySelector('.field-error');
   const emailVal = field.value.trim().toLowerCase();
 
   field.classList.remove('error');
-  if (errorEl) errorEl.textContent = '';
+  if (errorEl) { errorEl.textContent = ''; errorEl.style.color = ''; }
 
-  // Empty + required handled by validateField; here we only validate if there's a value.
   if (!emailVal) {
     if (field.required) {
       field.classList.add('error');
@@ -207,47 +203,48 @@ async function validateEmailField(field) {
     return true;
   }
 
-  // Step 1 — format check
+  // Step 1 — format
   if (!EMAIL_REGEX.test(emailVal)) {
     field.classList.add('error');
-    if (errorEl) errorEl.textContent = 'Please enter a valid email address.';
+    if (errorEl) errorEl.textContent = 'This email address is invalid.';
     return false;
   }
 
   const domain = emailVal.split('@')[1] || '';
 
-  // Step 2 — DNS MX check: show a neutral "Checking…" hint while the lookup runs
-  if (errorEl) {
-    errorEl.textContent = 'Checking email…';
-    errorEl.style.color = 'var(--clr-text-muted, #888)';
-  }
+  // Show neutral "checking" state while network calls run
+  if (errorEl) { errorEl.textContent = 'Checking email…'; errorEl.style.color = 'var(--clr-text-muted, #888)'; }
 
-  const real = await domainCanReceiveMail(domain);
-
-  if (errorEl) errorEl.style.color = '';
-
-  if (!real) {
+  // Step 2 — DNS MX
+  const domainOk = await domainCanReceiveMail(domain);
+  if (!domainOk) {
     field.classList.add('error');
-    if (errorEl) errorEl.textContent = 'Please enter a valid email address.';
+    if (errorEl) { errorEl.style.color = ''; errorEl.textContent = 'This email address is invalid.'; }
     return false;
   }
 
-  if (errorEl) errorEl.textContent = '';
+  // Step 3 — SMTP mailbox check (requires Abstract API key)
+  const mailboxStatus = await checkMailboxExists(emailVal);
+  if (errorEl) { errorEl.style.color = ''; errorEl.textContent = ''; }
+
+  if (mailboxStatus === 'invalid') {
+    field.classList.add('error');
+    if (errorEl) errorEl.textContent = 'This email address is invalid.';
+    return false;
+  }
+
+  // 'valid' or 'unknown' (server didn't confirm either way) — allow through
   return true;
 }
 
-// Live validation — blur triggers async email check; input clears errors while typing.
+// Live validation: blur = full async check; typing clears existing error instantly.
 contactForm?.querySelectorAll('input, select, textarea').forEach(field => {
   field.addEventListener('blur', () => {
-    if (field.type === 'email') {
-      validateEmailField(field); // async — intentionally not awaited; updates UI when done
-    } else {
-      validateField(field);
-    }
+    if (field.type === 'email') validateEmailField(field);
+    else validateField(field);
   });
   field.addEventListener('input', () => {
     if (field.classList.contains('error')) {
-      // Clear the error immediately while the user types so they get instant feedback
       field.classList.remove('error');
       const errorEl = field.closest('.form-group')?.querySelector('.field-error');
       if (errorEl) { errorEl.style.color = ''; errorEl.textContent = ''; }
@@ -258,16 +255,14 @@ contactForm?.querySelectorAll('input, select, textarea').forEach(field => {
 contactForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // 1. Validate all non-email fields synchronously
-  const fields    = contactForm.querySelectorAll('input, select, textarea');
+  // 1. Sync-validate all non-email fields
+  const fields     = contactForm.querySelectorAll('input, select, textarea');
   const emailField = contactForm.querySelector('input[type="email"]');
   let allValid = true;
-  fields.forEach(f => {
-    if (f.type !== 'email' && !validateField(f)) allValid = false;
-  });
+  fields.forEach(f => { if (f.type !== 'email' && !validateField(f)) allValid = false; });
   if (!allValid) return;
 
-  // 2. Validate the email field asynchronously (DNS MX check)
+  // 2. Async-validate email (format → DNS → SMTP). Block form if invalid.
   if (emailField) {
     formSubmitBtn.disabled = true;
     formSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying email…';
@@ -275,14 +270,12 @@ contactForm?.addEventListener('submit', async (e) => {
     if (!emailOk) {
       formSubmitBtn.disabled = false;
       formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
-      return;
+      return; // ← form is NOT sent to Formspree
     }
   }
 
-  // 3. Hide any previously-shown success banner before sending
+  // 3. Email is valid — proceed with submission
   formSuccess.hidden = true;
-
-  // Show loading state
   formSubmitBtn.disabled = true;
   formSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending…';
 
@@ -308,7 +301,6 @@ contactForm?.addEventListener('submit', async (e) => {
     formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
 
   } catch (err) {
-    // Show the error message on the button so the user knows something went wrong
     formSubmitBtn.innerHTML =
       '<i class="fa-solid fa-triangle-exclamation"></i> ' +
       (err.message || 'Something went wrong. Try emailing directly.');
@@ -337,11 +329,8 @@ document.querySelectorAll('[data-price]').forEach(btn => {
     btn.disabled  = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redirecting to payment…';
 
-    // Bug fix #5: the old setTimeout ran 4 s after navigation away — the page is
-    // already unloaded by then so it never fired. Use pageshow instead, which fires
-    // when the browser restores the page from the bfcache after the user hits Back.
     const restoreBtn = (e) => {
-      if (e.persisted) {          // bfcache restore (back-navigation)
+      if (e.persisted) {
         btn.disabled  = false;
         btn.innerHTML = originalHTML;
       }
