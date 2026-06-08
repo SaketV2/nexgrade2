@@ -129,22 +129,44 @@ const contactForm   = document.getElementById('contactForm');
 const formSubmitBtn = document.getElementById('formSubmitBtn');
 const formSuccess   = document.getElementById('formSuccess');
 
-// Bug fix #1: Stricter email regex + disposable-domain blocklist.
-// Old regex (/^[^\s@]+@[^\s@]+\.[^\s@]+$/) passes fake@fake.com, test@test.com, etc.
+// Email format regex — checks structural validity before doing any network call.
 const EMAIL_REGEX =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
 
-const DISPOSABLE_DOMAINS = new Set([
-  'mailinator.com','guerrillamail.com','10minutemail.com','tempmail.com',
-  'throwam.com','yopmail.com','trashmail.com','fakeinbox.com','sharklasers.com',
-  'guerrillamailblock.com','grr.la','guerrillamail.info','guerrillamail.biz',
-  'guerrillamail.de','guerrillamail.net','guerrillamail.org','spam4.me',
-  'trashmail.at','trashmail.io','trashmail.me','trashmail.net','dispostable.com',
-  'mailnull.com','spamgourmet.com','spamgourmet.net','spamgourmet.org',
-  'fake.com','fake.net','fake.org','example.com','example.net','example.org',
-  'test.com','test.net','test.org','invalid.com','nowhere.com','noemail.com',
-]);
+// DNS MX record check via Google DNS-over-HTTPS.
+// Returns true if the domain has real mail servers registered in DNS,
+// false if the domain doesn't exist or has no MX records.
+// Fails open (returns true) on network errors so bad connectivity doesn't block real users.
+async function domainCanReceiveMail(domain) {
+  try {
+    const res = await fetch(
+      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`,
+      { headers: { Accept: 'application/json' } }
+    );
+    if (!res.ok) return true; // fail open on HTTP error
+    const json = await res.json();
 
+    // Status 3 = NXDOMAIN — this domain does not exist at all
+    if (json.Status === 3) return false;
+
+    // If there are MX records, the domain definitely accepts mail
+    if (Array.isArray(json.Answer) && json.Answer.length > 0) return true;
+
+    // No MX records — fall back to checking for an A record.
+    // Some small domains rely on their A record for mail delivery (rare but valid).
+    const aRes = await fetch(
+      `https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`,
+      { headers: { Accept: 'application/json' } }
+    );
+    if (!aRes.ok) return true;
+    const aJson = await aRes.json();
+    return aJson.Status !== 3 && Array.isArray(aJson.Answer) && aJson.Answer.length > 0;
+  } catch {
+    return true; // fail open on network/CORS error
+  }
+}
+
+// Sync validation for all non-email fields.
 function validateField(field) {
   const errorEl = field.closest('.form-group')?.querySelector('.field-error');
   let errorMsg = '';
@@ -153,14 +175,6 @@ function validateField(field) {
 
   if (field.required && !field.value.trim()) {
     errorMsg = 'This field is required.';
-  } else if (field.type === 'email' && field.value.trim()) {
-    const emailVal = field.value.trim().toLowerCase();
-    const domain   = emailVal.split('@')[1] || '';
-    if (!EMAIL_REGEX.test(emailVal)) {
-      errorMsg = 'Please enter a valid email address.';
-    } else if (DISPOSABLE_DOMAINS.has(domain)) {
-      errorMsg = 'Please use a real email address — temporary inboxes are not accepted.';
-    }
   }
 
   if (errorMsg) {
@@ -173,25 +187,99 @@ function validateField(field) {
   return true;
 }
 
-// Live validation on blur, re-validate on input if field was already invalid
+// Async validation for the email field.
+// Step 1: format check (instant).
+// Step 2: DNS MX lookup to confirm the domain actually exists and can receive mail.
+async function validateEmailField(field) {
+  const errorEl  = field.closest('.form-group')?.querySelector('.field-error');
+  const emailVal = field.value.trim().toLowerCase();
+
+  field.classList.remove('error');
+  if (errorEl) errorEl.textContent = '';
+
+  // Empty + required handled by validateField; here we only validate if there's a value.
+  if (!emailVal) {
+    if (field.required) {
+      field.classList.add('error');
+      if (errorEl) errorEl.textContent = 'This field is required.';
+      return false;
+    }
+    return true;
+  }
+
+  // Step 1 — format check
+  if (!EMAIL_REGEX.test(emailVal)) {
+    field.classList.add('error');
+    if (errorEl) errorEl.textContent = 'Please enter a valid email address.';
+    return false;
+  }
+
+  const domain = emailVal.split('@')[1] || '';
+
+  // Step 2 — DNS MX check: show a neutral "Checking…" hint while the lookup runs
+  if (errorEl) {
+    errorEl.textContent = 'Checking email…';
+    errorEl.style.color = 'var(--clr-text-muted, #888)';
+  }
+
+  const real = await domainCanReceiveMail(domain);
+
+  if (errorEl) errorEl.style.color = '';
+
+  if (!real) {
+    field.classList.add('error');
+    if (errorEl) errorEl.textContent = 'Please enter a valid email address.';
+    return false;
+  }
+
+  if (errorEl) errorEl.textContent = '';
+  return true;
+}
+
+// Live validation — blur triggers async email check; input clears errors while typing.
 contactForm?.querySelectorAll('input, select, textarea').forEach(field => {
-  field.addEventListener('blur', () => validateField(field));
+  field.addEventListener('blur', () => {
+    if (field.type === 'email') {
+      validateEmailField(field); // async — intentionally not awaited; updates UI when done
+    } else {
+      validateField(field);
+    }
+  });
   field.addEventListener('input', () => {
-    if (field.classList.contains('error')) validateField(field);
+    if (field.classList.contains('error')) {
+      // Clear the error immediately while the user types so they get instant feedback
+      field.classList.remove('error');
+      const errorEl = field.closest('.form-group')?.querySelector('.field-error');
+      if (errorEl) { errorEl.style.color = ''; errorEl.textContent = ''; }
+    }
   });
 });
 
 contactForm?.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  // Validate all fields first
-  const fields = contactForm.querySelectorAll('input, select, textarea');
+  // 1. Validate all non-email fields synchronously
+  const fields    = contactForm.querySelectorAll('input, select, textarea');
+  const emailField = contactForm.querySelector('input[type="email"]');
   let allValid = true;
-  fields.forEach(f => { if (!validateField(f)) allValid = false; });
+  fields.forEach(f => {
+    if (f.type !== 'email' && !validateField(f)) allValid = false;
+  });
   if (!allValid) return;
 
-  // Bug fix #2: hide any previously-shown success banner before the new request goes out.
-  // Without this, the green banner stays visible the entire time the new fetch is in-flight.
+  // 2. Validate the email field asynchronously (DNS MX check)
+  if (emailField) {
+    formSubmitBtn.disabled = true;
+    formSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying email…';
+    const emailOk = await validateEmailField(emailField);
+    if (!emailOk) {
+      formSubmitBtn.disabled = false;
+      formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
+      return;
+    }
+  }
+
+  // 3. Hide any previously-shown success banner before sending
   formSuccess.hidden = true;
 
   // Show loading state
