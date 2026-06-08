@@ -36,9 +36,11 @@ function highlightActiveNavLink() {
   });
 
   navLinks.forEach(link => {
+    // Bug fix #6: when current is '' (scrolled above all sections),
+    // toggle(false) now explicitly removes .active instead of leaving it set.
     link.classList.toggle(
       'active',
-      link.getAttribute('href') === `#${current}`
+      current !== '' && link.getAttribute('href') === `#${current}`
     );
   });
 }
@@ -127,6 +129,22 @@ const contactForm   = document.getElementById('contactForm');
 const formSubmitBtn = document.getElementById('formSubmitBtn');
 const formSuccess   = document.getElementById('formSuccess');
 
+// Bug fix #1: Stricter email regex + disposable-domain blocklist.
+// Old regex (/^[^\s@]+@[^\s@]+\.[^\s@]+$/) passes fake@fake.com, test@test.com, etc.
+const EMAIL_REGEX =
+  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+
+const DISPOSABLE_DOMAINS = new Set([
+  'mailinator.com','guerrillamail.com','10minutemail.com','tempmail.com',
+  'throwam.com','yopmail.com','trashmail.com','fakeinbox.com','sharklasers.com',
+  'guerrillamailblock.com','grr.la','guerrillamail.info','guerrillamail.biz',
+  'guerrillamail.de','guerrillamail.net','guerrillamail.org','spam4.me',
+  'trashmail.at','trashmail.io','trashmail.me','trashmail.net','dispostable.com',
+  'mailnull.com','spamgourmet.com','spamgourmet.net','spamgourmet.org',
+  'fake.com','fake.net','fake.org','example.com','example.net','example.org',
+  'test.com','test.net','test.org','invalid.com','nowhere.com','noemail.com',
+]);
+
 function validateField(field) {
   const errorEl = field.closest('.form-group')?.querySelector('.field-error');
   let errorMsg = '';
@@ -136,9 +154,12 @@ function validateField(field) {
   if (field.required && !field.value.trim()) {
     errorMsg = 'This field is required.';
   } else if (field.type === 'email' && field.value.trim()) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(field.value.trim())) {
+    const emailVal = field.value.trim().toLowerCase();
+    const domain   = emailVal.split('@')[1] || '';
+    if (!EMAIL_REGEX.test(emailVal)) {
       errorMsg = 'Please enter a valid email address.';
+    } else if (DISPOSABLE_DOMAINS.has(domain)) {
+      errorMsg = 'Please use a real email address — temporary inboxes are not accepted.';
     }
   }
 
@@ -168,6 +189,10 @@ contactForm?.addEventListener('submit', async (e) => {
   let allValid = true;
   fields.forEach(f => { if (!validateField(f)) allValid = false; });
   if (!allValid) return;
+
+  // Bug fix #2: hide any previously-shown success banner before the new request goes out.
+  // Without this, the green banner stays visible the entire time the new fetch is in-flight.
+  formSuccess.hidden = true;
 
   // Show loading state
   formSubmitBtn.disabled = true;
@@ -224,13 +249,19 @@ document.querySelectorAll('[data-price]').forEach(btn => {
     btn.disabled  = true;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Redirecting to payment…';
 
-    window.location.href = url;
+    // Bug fix #5: the old setTimeout ran 4 s after navigation away — the page is
+    // already unloaded by then so it never fired. Use pageshow instead, which fires
+    // when the browser restores the page from the bfcache after the user hits Back.
+    const restoreBtn = (e) => {
+      if (e.persisted) {          // bfcache restore (back-navigation)
+        btn.disabled  = false;
+        btn.innerHTML = originalHTML;
+      }
+      window.removeEventListener('pageshow', restoreBtn);
+    };
+    window.addEventListener('pageshow', restoreBtn);
 
-    // Restore button if user navigates back
-    setTimeout(() => {
-      btn.disabled  = false;
-      btn.innerHTML = originalHTML;
-    }, 4000);
+    window.location.href = url;
   });
 });
 
