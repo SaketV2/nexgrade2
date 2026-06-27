@@ -358,11 +358,20 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 5px;
   padding: 8px;
   margin-left: auto;
+  width: 40px;
+  height: 40px;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  transition: background var(--transition);
+  background: transparent;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), border-color var(--transition);
 }
 
-.nav-hamburger:hover { background: rgba(26,43,74,0.06); }
+.nav-hamburger:hover {
+  background: rgba(26, 43, 74, 0.06);
+  border-color: rgba(26, 43, 74, 0.12);
+}
 
 .nav-hamburger span {
   display: block;
@@ -374,16 +383,26 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transform-origin: center;
 }
 
-.nav-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.nav-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.nav-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.nav-hamburger.open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
 
-/* Mobile Menu */
+.nav-hamburger.open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.nav-hamburger.open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
 .mobile-menu {
   position: fixed;
   inset: var(--nav-h) 0 0 0;
+  min-height: calc(100vh - var(--nav-h));
+  padding: 2rem 1.5rem 1.5rem;
   background: var(--cream);
-  z-index: 999;
+  z-index: 1001;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -494,9 +513,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .hero-rate {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: center;
   gap: 0.25rem;
-  margin-bottom: 2rem;
+  margin: 0 auto 2rem;
 }
 
 .rate-amount {
@@ -644,6 +664,30 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   flex-shrink: 0;
 }
 
+.session-format-note {
+  margin-top: 0.6rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(232, 150, 15, 0.24);
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.84);
+}
+
+.session-format-note strong {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--amber-light);
+  margin-bottom: 0.35rem;
+}
+
+.session-format-note span {
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: rgba(255,255,255,0.72);
+}
 
 /* Scroll hint */
 .hero-scroll-hint {
@@ -778,6 +822,36 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 0.75rem;
 }
 
+.profile-trust-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(232, 150, 15, 0.24);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(253,243,224,0.95));
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-trust-badge i {
+  margin-top: 0.2rem;
+  font-size: 1.2rem;
+  color: var(--amber);
+}
+
+.profile-trust-badge strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--navy);
+  margin-bottom: 0.2rem;
+}
+
+.profile-trust-badge span {
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: var(--text-muted);
+}
+
 .qual-badge {
   display: flex;
   align-items: center;
@@ -800,16 +874,32 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: 1.025rem;
 }
 
-/* Results grid */
-.results-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 1rem;
-  margin-top: 2rem;
+.agency-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 1.3rem 0 1.6rem;
 }
 
-.result-card {
-  padding: 1rem;
+.agency-chip {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(26, 43, 74, 0.06);
+  border: 1px solid rgba(26, 43, 74, 0.12);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.strengths-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.strength-card {
+  padding: 1.2rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--white);
@@ -817,33 +907,34 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   transition: transform var(--transition), box-shadow var(--transition);
 }
 
-.result-card:hover {
+.strength-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
 }
 
-.rc-subject {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
+.strength-card i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: var(--amber-pale);
+  color: var(--amber);
+  border-radius: 50%;
+  margin-bottom: 0.8rem;
+}
+
+.strength-card h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--navy);
   margin-bottom: 0.4rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
-.rc-band {
-  font-family: var(--font-display);
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin-bottom: 0.2rem;
-}
-
-.band-6 { color: var(--navy); }
-.band-5 { color: var(--amber); }
-
-.rc-note {
-  font-size: 0.75rem;
+.strength-card p {
+  font-size: 0.86rem;
   color: var(--text-muted);
+  line-height: 1.55;
 }
 
 /* ------------------------------------------------------------
@@ -1237,7 +1328,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   font-size: 0.9rem;
 }
 
-.form-success i { font-size: 1.25rem; color: #10b981; }
+.form-success.success {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+
+.form-success.error {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.form-success i { font-size: 1.25rem; }
+.form-success.success i { color: #10b981; }
+.form-success.error i { color: #dc2626; }
 
 /* Submit button state */
 #formSubmitBtn:disabled {

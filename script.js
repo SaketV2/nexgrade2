@@ -43,9 +43,15 @@ function highlightActiveNavLink() {
   });
 }
 
+const heroScrollHint = document.querySelector('.hero-scroll-hint');
+
 window.addEventListener('scroll', () => {
   handleNavScroll();
   highlightActiveNavLink();
+
+  if (heroScrollHint) {
+    heroScrollHint.hidden = window.scrollY > 100;
+  }
 }, { passive: true });
 
 handleNavScroll();
@@ -151,6 +157,8 @@ function validateField(field) {
 
 function showFormFeedback(success, message) {
   formSuccess.hidden = false;
+  formSuccess.classList.remove('success', 'error');
+  formSuccess.classList.add(success ? 'success' : 'error');
   formSuccess.innerHTML = `
     <i class="fa-solid ${success ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
     <span>${message}</span>
@@ -158,12 +166,32 @@ function showFormFeedback(success, message) {
   formSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+async function verifyGmailDeliverability(email) {
+  const apiUrl = `https://open.kickbox.com/v1/verify?email=${encodeURIComponent(email)}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+  try {
+    const response = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (!response.ok) return null;
+    const data = await response.json();
+
+    if (data?.result === 'deliverable' || data?.deliverable === true) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return null;
+  }
+}
+
 async function validateEmailField(field) {
   const emailVal = field.value.trim().toLowerCase();
 
   if (!emailVal) {
     setFieldError(field, field.required ? 'This field is required.' : '');
-    return !field.required;
+    return false;
   }
 
   if (!GMAIL_REGEX.test(emailVal)) {
@@ -208,7 +236,22 @@ contactForm?.addEventListener('submit', async (e) => {
     if (!emailOk) {
       formSubmitBtn.disabled = false;
       formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
-      return; // ← form is NOT sent to Formspree
+      return;
+    }
+
+    const deliveryOk = await verifyGmailDeliverability(emailField.value.trim().toLowerCase());
+    if (deliveryOk === false) {
+      setFieldError(emailField, 'This Gmail address does not appear to be deliverable. Please use a real Gmail address.');
+      formSubmitBtn.disabled = false;
+      formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
+      return;
+    }
+
+    if (deliveryOk === null) {
+      setFieldError(emailField, 'Unable to verify this Gmail address right now. Please check your email or try again later.');
+      formSubmitBtn.disabled = false;
+      formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
+      return;
     }
   }
 
