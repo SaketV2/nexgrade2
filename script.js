@@ -112,128 +112,66 @@ document.querySelectorAll('.reveal, .fade-in-up, .fade-in-right').forEach(el => 
    4. CONTACT FORM — Formspree
    ============================================================
 
-   SETUP (2 minutes):
-   1. Go to https://formspree.io and create a free account
-   2. Click "New Form", name it "NexGrade Contact"
-   3. Copy your endpoint — it looks like: https://formspree.io/f/xyzabcde
-   4. Paste it as the value of FORMSPREE_ENDPOINT below
-   5. Deploy — every submission will be emailed to you
+   Setup:
+   1. Create a Formspree form and copy your endpoint.
+   2. Paste it as the value of FORMSPREE_ENDPOINT below.
+   3. Deploy — submissions will be emailed to you.
 
-   EMAIL VALIDATION SETUP:
-   1. Sign up free at https://www.abstractapi.com/api/email-verification-validation-api
-   2. Copy your API key and paste it as ABSTRACT_EMAIL_API_KEY below
-   3. Free tier = 100 verifications/month (plenty for an enquiry form)
-   4. Without the key, validation falls back to DNS-only (no fake gmail detection)
-
+   The contact form now blocks submissions unless the visitor enters a
+   properly formatted Gmail address, which prevents fake or non-Gmail
+   addresses from being sent through to Formspree.
    ============================================================ */
 
-const FORMSPREE_ENDPOINT    = 'https://formspree.io/f/xvznzwvv';
-const ABSTRACT_EMAIL_API_KEY = '9ffb1ceccb794323b12405987122c367'; // ← paste your Abstract API key here
+const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xvznzwvv';
 
 const contactForm   = document.getElementById('contactForm');
 const formSubmitBtn = document.getElementById('formSubmitBtn');
 const formSuccess   = document.getElementById('formSuccess');
 
-// Email format regex — quick structural check before any network call.
-const EMAIL_REGEX =
-  /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/;
+// Only allow properly formatted Gmail addresses.
+const GMAIL_REGEX = /^[a-z0-9](?:[a-z0-9._%+-]{0,62}[a-z0-9])?@(?:gmail\.com|googlemail\.com)$/i;
 
-// ─── LAYER 1: DNS MX check ────────────────────────────────────────────────────
-// Catches completely made-up domains (e.g. fake@notadomain.xyz).
-// Does NOT catch fake accounts on real domains (e.g. fakeperson@gmail.com).
-async function domainCanReceiveMail(domain) {
-  try {
-    const res  = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`, { headers: { Accept: 'application/json' } });
-    if (!res.ok) return true;
-    const json = await res.json();
-    if (json.Status === 3) return false; // NXDOMAIN — domain doesn't exist
-    if (Array.isArray(json.Answer) && json.Answer.length > 0) return true;
-    // fallback: check A record
-    const ar = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=A`, { headers: { Accept: 'application/json' } });
-    const aj = await ar.json();
-    return aj.Status !== 3 && Array.isArray(aj.Answer) && aj.Answer.length > 0;
-  } catch { return true; } // fail open on network error
-}
-
-// ─── LAYER 2: Abstract API SMTP check ────────────────────────────────────────
-// Actually pings the mail server to confirm the mailbox exists.
-// Catches fake@gmail.com, madeup@hotmail.com, etc.
-// Returns: 'valid' | 'invalid' | 'unknown' (unknown = server didn't respond definitively)
-async function checkMailboxExists(email) {
-  if (!ABSTRACT_EMAIL_API_KEY) return 'unknown'; // key not set — skip
-  try {
-    const url = `https://emailvalidation.abstractapi.com/v1/?api_key=${ABSTRACT_EMAIL_API_KEY}&email=${encodeURIComponent(email)}`;
-    const res  = await fetch(url);
-    if (!res.ok) return 'unknown';
-    const json = await res.json();
-    // deliverability: "DELIVERABLE" | "UNDELIVERABLE" | "UNKNOWN"
-    if (json.deliverability === 'UNDELIVERABLE') return 'invalid';
-    if (json.deliverability === 'DELIVERABLE')   return 'valid';
-    return 'unknown';
-  } catch { return 'unknown'; } // fail open on network error
-}
-
-// ─── SYNC: non-email fields ───────────────────────────────────────────────────
-function validateField(field) {
+function setFieldError(field, message) {
   const errorEl = field.closest('.form-group')?.querySelector('.field-error');
-  field.classList.remove('error');
+  field.classList.toggle('error', Boolean(message));
+  if (errorEl) {
+    errorEl.textContent = message || '';
+    errorEl.style.color = message ? 'var(--clr-accent-danger, #b42318)' : '';
+  }
+}
+
+function validateField(field) {
   if (field.required && !field.value.trim()) {
-    field.classList.add('error');
-    if (errorEl) errorEl.textContent = 'This field is required.';
+    setFieldError(field, 'This field is required.');
     return false;
   }
-  if (errorEl) errorEl.textContent = '';
+  setFieldError(field, '');
   return true;
 }
 
-// ─── ASYNC: email field (format → DNS → SMTP) ────────────────────────────────
+function showFormFeedback(success, message) {
+  formSuccess.hidden = false;
+  formSuccess.innerHTML = `
+    <i class="fa-solid ${success ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+    <span>${message}</span>
+  `;
+  formSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 async function validateEmailField(field) {
-  const errorEl  = field.closest('.form-group')?.querySelector('.field-error');
   const emailVal = field.value.trim().toLowerCase();
 
-  field.classList.remove('error');
-  if (errorEl) { errorEl.textContent = ''; errorEl.style.color = ''; }
-
   if (!emailVal) {
-    if (field.required) {
-      field.classList.add('error');
-      if (errorEl) errorEl.textContent = 'This field is required.';
-      return false;
-    }
-    return true;
+    setFieldError(field, field.required ? 'This field is required.' : '');
+    return !field.required;
   }
 
-  // Step 1 — format
-  if (!EMAIL_REGEX.test(emailVal)) {
-    field.classList.add('error');
-    if (errorEl) errorEl.textContent = 'This email address is invalid.';
+  if (!GMAIL_REGEX.test(emailVal)) {
+    setFieldError(field, 'Please enter a valid Gmail address, for example yourname@gmail.com.');
     return false;
   }
 
-  const domain = emailVal.split('@')[1] || '';
-
-  // Show neutral "checking" state while network calls run
-  if (errorEl) { errorEl.textContent = 'Checking email…'; errorEl.style.color = 'var(--clr-text-muted, #888)'; }
-
-  // Step 2 — DNS MX
-  const domainOk = await domainCanReceiveMail(domain);
-  if (!domainOk) {
-    field.classList.add('error');
-    if (errorEl) { errorEl.style.color = ''; errorEl.textContent = 'This email address is invalid.'; }
-    return false;
-  }
-
-  // Step 3 — SMTP mailbox check (requires Abstract API key)
-  const mailboxStatus = await checkMailboxExists(emailVal);
-  if (errorEl) { errorEl.style.color = ''; errorEl.textContent = ''; }
-
-  if (mailboxStatus === 'invalid') {
-    field.classList.add('error');
-    if (errorEl) errorEl.textContent = 'This email address is invalid.';
-    return false;
-  }
-
-  // 'valid' or 'unknown' (server didn't confirm either way) — allow through
+  setFieldError(field, '');
   return true;
 }
 
@@ -291,16 +229,16 @@ contactForm?.addEventListener('submit', async (e) => {
       throw new Error(data?.errors?.[0]?.message || 'Submission failed. Please try again.');
     }
 
-    // Success
+    // Success only after Formspree accepts the submission.
     contactForm.reset();
-    formSuccess.hidden = false;
-    formSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    showFormFeedback(true, "Message sent! I'll be in touch within a few hours.");
 
     // Reset button
     formSubmitBtn.disabled = false;
     formSubmitBtn.innerHTML = 'Send Enquiry <i class="fa-solid fa-paper-plane"></i>';
 
   } catch (err) {
+    showFormFeedback(false, 'An error occurred, please try again.');
     formSubmitBtn.innerHTML =
       '<i class="fa-solid fa-triangle-exclamation"></i> ' +
       (err.message || 'Something went wrong. Try emailing directly.');
