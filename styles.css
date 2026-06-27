@@ -511,32 +511,41 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .hero-sub strong { color: var(--white); font-weight: 600; }
 
-.hero-rate {
+.hero-cta-group {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  margin: 0 auto 2rem;
+  gap: 1rem;
+  margin: 0 auto 0;
+}
+
+.hero-rate {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0;
 }
 
 .rate-amount {
   font-family: var(--font-display);
-  font-size: 3.5rem;
+  font-size: clamp(2.8rem, 5vw, 3.8rem);
   font-weight: 800;
   color: var(--amber);
   line-height: 1;
 }
 
 .rate-unit {
-  font-size: 1.1rem;
-  color: rgba(255,255,255,0.6);
+  font-size: 1.05rem;
+  color: rgba(255,255,255,0.75);
   font-weight: 500;
 }
 
 .hero-ctas {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 }
 
 /* Hero visual / floating cards */
