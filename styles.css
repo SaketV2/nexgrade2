@@ -1729,11 +1729,19 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   }
 
   .pricing-grid,
-  .services-grid {
+  .services-grid,
+  .strengths-grid {
     grid-template-columns: 1fr;
   }
 
   .trust-item { flex: 1 0 100%; }
+
+  .feature-card,
+  .strength-card,
+  .service-card,
+  .price-card {
+    min-width: 0;
+  }
 
   .hero {
     padding-top: 2.25rem;
@@ -1742,6 +1750,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
   .hero-inner {
     gap: 1.5rem;
+    min-width: 0;
   }
 
   .hero-badge {
