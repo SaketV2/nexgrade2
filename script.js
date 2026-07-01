@@ -297,6 +297,7 @@ contactForm?.addEventListener('submit', async (e) => {
 const PAYMENT_LINKS = {
   single: 'https://buy.stripe.com/aFaaEXeJ359t17F8SJ0co00',
   bundle: 'https://buy.stripe.com/7sYaEX6cxgSbbMj3yp0co01',
+  online: 'https://buy.stripe.com/dR6aEXeJP8dSdbM000',
 };
 
 document.querySelectorAll('[data-price]').forEach(btn => {
@@ -304,7 +305,9 @@ document.querySelectorAll('[data-price]').forEach(btn => {
     const label    = btn.getAttribute('data-label') || '';
     const isBundle = label.toLowerCase().includes('bundle') ||
                      btn.getAttribute('data-price') === '25000';
-    const url      = isBundle ? PAYMENT_LINKS.bundle : PAYMENT_LINKS.single;
+    const isOnline = label.toLowerCase().includes('online') ||
+                     btn.getAttribute('data-price') === '4000';
+    const url      = isBundle ? PAYMENT_LINKS.bundle : isOnline ? PAYMENT_LINKS.online : PAYMENT_LINKS.single;
 
     const originalHTML = btn.innerHTML;
     btn.disabled  = true;
@@ -322,6 +325,53 @@ document.querySelectorAll('[data-price]').forEach(btn => {
     window.location.href = url;
   });
 });
+
+const authButtons = document.querySelectorAll('.auth-provider-btn');
+const accountSummary = document.querySelector('.account-summary');
+const accountTitle = document.getElementById('accountTitle');
+const accountMessage = document.getElementById('accountMessage');
+const portalBtn = document.getElementById('portalBtn');
+
+if (authButtons.length) {
+  authButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const provider = button.dataset.provider;
+      window.location.href = `/api/auth-${provider}`;
+    });
+  });
+}
+
+if (portalBtn) {
+  portalBtn.addEventListener('click', async () => {
+    portalBtn.disabled = true;
+    portalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening portal…';
+    try {
+      const response = await fetch('/api/create-portal-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnUrl: `${window.location.origin}/account.html` }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || 'Unable to open portal');
+      }
+      window.location.href = data.url;
+    } catch (error) {
+      portalBtn.disabled = false;
+      portalBtn.innerHTML = 'Open Customer Portal';
+      alert(error.message || 'Could not open customer portal at this time.');
+    }
+  });
+}
+
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('auth')) {
+  if (accountSummary) {
+    accountSummary.hidden = false;
+    accountTitle.textContent = 'Welcome to your account';
+    accountMessage.textContent = 'You are signed in. Use the customer portal button to view your Stripe subscriptions and payment methods.';
+  }
+}
 
 
 /* ============================================================

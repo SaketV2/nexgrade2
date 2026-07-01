@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Customer account portal for NexGrade. Manage Stripe payments, subscriptions, and login with Google or Outlook." />
+  <title>NexGrade | Customer Account</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="navbar" id="navbar">
+    <div class="nav-inner container">
+      <a href="index.html#home" class="nav-logo" aria-label="Home">
+        <span class="logo-mark">N</span>
+        <span class="logo-text">Nex<em>Grade</em></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="index.html#about">About</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="index.html#contact">Contact</a>
+        <a href="account.html">Account</a>
+      </nav>
+
+      <a href="index.html#contact" class="btn btn-nav-cta">Book Now</a>
+
+      <button class="nav-hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+    <div class="mobile-menu" id="mobileMenu" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+      <nav>
+        <a href="index.html#about" class="mobile-link">About</a>
+        <a href="index.html#services" class="mobile-link">Services</a>
+        <a href="index.html#pricing" class="mobile-link">Pricing</a>
+        <a href="index.html#contact" class="mobile-link">Contact</a>
+        <a href="account.html" class="mobile-link">Account</a>
+      </nav>
+      <a href="index.html#contact" class="btn btn-primary mobile-cta">Book Now</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="section account-section" aria-label="Customer portal">
+      <div class="container">
+        <div class="section-header text-center">
+          <p class="section-label">Customer Portal</p>
+          <h1 class="section-heading">Sign in and manage your Stripe payments</h1>
+          <p class="section-sub">Use Google or Outlook to access your secure account. Once signed in you can open the Stripe customer portal and manage payment methods, invoices, and subscriptions.</p>
+        </div>
+
+        <div class="account-grid">
+          <div class="account-panel auth-panel reveal">
+            <h2>Sign in with</h2>
+            <p>Choose your preferred provider to access the customer dashboard.</p>
+            <div class="auth-provider-list">
+              <button class="btn btn-ghost auth-provider-btn" data-provider="google">
+                <i class="fa-brands fa-google"></i>
+                Continue with Google
+              </button>
+              <button class="btn btn-ghost auth-provider-btn" data-provider="outlook">
+                <i class="fa-brands fa-microsoft"></i>
+                Continue with Outlook
+              </button>
+            </div>
+            <div class="account-note">
+              After signing in, click the portal button below to manage subscription billing and payment details directly in Stripe.
+            </div>
+          </div>
+
+          <div class="account-panel account-summary reveal" hidden>
+            <h2 id="accountTitle">Welcome back</h2>
+            <p id="accountMessage">Your payment portal is ready. Manage your current subscriptions, payment methods, and invoices from one secure location.</p>
+
+            <div class="account-info-card">
+              <h3>Customer portal</h3>
+              <p>Open Stripe’s hosted portal to update cards, view invoices, and manage recurring subscriptions.</p>
+              <button class="btn btn-primary customer-portal-btn" id="portalBtn">Open Customer Portal</button>
+            </div>
+
+            <div class="account-info-card">
+              <h3>Subscription options</h3>
+              <p>See all available payment plans and upgrade options for tutoring sessions.</p>
+              <a href="index.html#pricing" class="btn btn-ghost">View pricing options</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" role="contentinfo">
+    <div class="container footer-inner">
+      <a href="index.html#home" class="footer-logo" aria-label="Back to top">
+        <span class="logo-mark">N</span>
+        <span class="logo-text">Nex<em>Grade</em></span>
+      </a>
+      <p class="footer-copy">&copy; <span id="footerYear"></span> NexGrade · Western Sydney in-person &amp; online interactive sessions</p>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="index.html#about">About</a>
+        <a href="index.html#services">Services</a>
+        <a href="index.html#pricing">Pricing</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="script.js"></script>
+</body>
+</html>
