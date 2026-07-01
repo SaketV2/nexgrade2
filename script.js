@@ -327,6 +327,7 @@ document.querySelectorAll('[data-price]').forEach(btn => {
 });
 
 const authButtons = document.querySelectorAll('.auth-provider-btn');
+const authPanel = document.querySelector('.auth-panel');
 const accountSummary = document.querySelector('.account-summary');
 const accountTitle = document.getElementById('accountTitle');
 const accountMessage = document.getElementById('accountMessage');
@@ -366,6 +367,9 @@ if (portalBtn) {
 
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('auth')) {
+  if (authPanel) {
+    authPanel.hidden = true;
+  }
   if (accountSummary) {
     accountSummary.hidden = false;
     accountTitle.textContent = 'Welcome to your account';

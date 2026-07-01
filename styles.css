@@ -1482,12 +1482,23 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   border-radius: var(--radius-md);
   margin-top: 1.5rem;
   background: var(--amber-pale);
+  display: grid;
+  gap: 1rem;
 }
 
 .account-info-card h3 {
   margin-top: 0;
   font-size: 1rem;
   color: var(--navy);
+}
+
+.account-info-card .btn {
+  width: fit-content;
+  min-width: 210px;
+}
+
+.account-info-card .btn + .btn {
+  margin-top: 0.75rem;
 }
 
 @media (max-width: 960px) {
