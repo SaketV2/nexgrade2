@@ -52,6 +52,9 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: var(--nav-h);
   font-size: 16px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 body {
@@ -62,6 +65,7 @@ body {
   line-height: 1.65;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  min-width: 0;
 }
 
 img { max-width: 100%; display: block; }
@@ -83,6 +87,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   max-width: var(--container);
   margin-inline: auto;
   padding-inline: clamp(1rem, 5vw, 2.5rem);
+  width: 100%;
+  min-width: 0;
 }
 
 .section {
@@ -450,6 +456,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: relative;
   overflow: hidden;
   padding-block: clamp(6rem, 12vw, 9rem) clamp(7rem, 14vw, 11rem);
+  width: 100%;
+  min-width: 0;
 }
 
 /* Dot grid texture */
@@ -470,6 +478,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   align-items: center;
   position: relative;
   z-index: 1;
+  width: 100%;
+  min-width: 0;
 }
 
 /* Hero content */
@@ -1644,6 +1654,35 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 @media (max-width: 600px) {
   :root {
     --nav-h: 64px;
+  }
+
+  .hero {
+    padding-inline: 1rem;
+  }
+
+  .hero-inner,
+  .hero-visual,
+  .hero-features,
+  .section,
+  .container,
+  .about-inner,
+  .trust-inner {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .hero-visual,
+  .hero-features {
+    width: 100%;
+  }
+
+  .hero-wave {
+    left: 0;
+    right: 0;
+  }
+
+  .hero-scroll-hint {
+    bottom: 90px;
   }
 
   body {
