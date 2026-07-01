@@ -789,15 +789,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: grid;
   grid-template-columns: 380px 1fr;
   gap: clamp(3rem, 6vw, 6rem);
-  align-items: stretch;
+  align-items: start;
 }
 
 .about-photo-col {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 1.5rem;
-  padding-top: 1.2rem;
 }
 
 .about-photo-wrap {
