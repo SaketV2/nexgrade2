@@ -297,7 +297,7 @@ contactForm?.addEventListener('submit', async (e) => {
 const PAYMENT_LINKS = {
   single: 'https://buy.stripe.com/aFaaEXeJ359t17F8SJ0co00',
   bundle: 'https://buy.stripe.com/7sYaEX6cxgSbbMj3yp0co01',
-  online: 'https://buy.stripe.com/dR6aEXeJP8dSdbM000',
+  online: 'https://buy.stripe.com/5kQ00j8kFdFZcQn8SJ0co02',
 };
 
 document.querySelectorAll('[data-price]').forEach(btn => {
