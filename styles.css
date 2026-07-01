@@ -1426,10 +1426,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 
 .account-grid {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(300px, 1.15fr);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
   align-items: start;
-  max-width: 1080px;
+  max-width: 880px;
   margin-inline: auto;
   justify-content: center;
 }
