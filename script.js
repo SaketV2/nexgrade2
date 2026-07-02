@@ -332,6 +332,53 @@ const accountSummary = document.querySelector('.account-summary');
 const accountTitle = document.getElementById('accountTitle');
 const accountMessage = document.getElementById('accountMessage');
 const portalBtn = document.getElementById('portalBtn');
+let stripeCustomerId = null;
+
+async function fetchCustomerStatus(email) {
+  if (!email) {
+    throw new Error('Verified Google email not found');
+  }
+
+  if (authPanel) authPanel.hidden = true;
+  if (accountSummary) accountSummary.hidden = false;
+  if (accountTitle) accountTitle.textContent = 'Checking your Stripe subscription…';
+  if (accountMessage) accountMessage.textContent = 'Retrieving your verified Stripe customer profile using your Google email.';
+  if (portalBtn) portalBtn.disabled = true;
+
+  const response = await fetch('/api/get-customer-status', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Unable to retrieve customer status');
+  }
+
+  stripeCustomerId = data.customerId;
+  const hasActiveSubscription = Boolean(data.hasActiveSubscription);
+  const subscriptionDetails = Array.isArray(data.subscriptionDetails) ? data.subscriptionDetails : [];
+
+  if (hasActiveSubscription && subscriptionDetails.length > 0) {
+    const details = subscriptionDetails.map(item => {
+      const nextBilling = item.nextBillingDate ? `Next billing: ${item.nextBillingDate}` : 'Next billing date unavailable';
+      return `
+        <strong>${item.productName}</strong><br />
+        ${item.tier}<br />
+        ${nextBilling}
+      `;
+    }).join('<br /><br />');
+
+    if (accountTitle) accountTitle.textContent = 'Active subscription found';
+    if (accountMessage) accountMessage.innerHTML = `You have an active tutoring subscription.<br /><br />${details}`;
+  } else {
+    if (accountTitle) accountTitle.textContent = 'No active subscription';
+    if (accountMessage) accountMessage.textContent = 'We did not find an active Stripe subscription for your account. You can open the customer portal to manage billing or visit pricing to choose a plan.';
+  }
+
+  if (portalBtn) portalBtn.disabled = false;
+}
 
 if (authButtons.length) {
   authButtons.forEach(button => {
@@ -344,18 +391,26 @@ if (authButtons.length) {
 
 if (portalBtn) {
   portalBtn.addEventListener('click', async () => {
+    if (!stripeCustomerId) {
+      alert('Unable to open the portal until your Stripe customer account has been loaded. Please refresh and try again.');
+      return;
+    }
+
     portalBtn.disabled = true;
     portalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Opening portal…';
+
     try {
       const response = await fetch('/api/create-portal-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ returnUrl: `${window.location.origin}/account.html` }),
+        body: JSON.stringify({ customerId: stripeCustomerId }),
       });
       const data = await response.json();
+
       if (!response.ok || !data.url) {
         throw new Error(data.error || 'Unable to open portal');
       }
+
       window.location.href = data.url;
     } catch (error) {
       portalBtn.disabled = false;
@@ -366,15 +421,23 @@ if (portalBtn) {
 }
 
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('auth')) {
-  if (authPanel) {
-    authPanel.hidden = true;
-  }
-  if (accountSummary) {
-    accountSummary.hidden = false;
-    accountTitle.textContent = 'Welcome to your account';
-    accountMessage.textContent = 'You are signed in. Use the customer portal button to view your Stripe subscriptions and payment methods.';
-  }
+const authParam = urlParams.get('auth');
+const emailParam = urlParams.get('email');
+
+if (authParam === 'google' && emailParam) {
+  fetchCustomerStatus(emailParam).catch(error => {
+    if (accountTitle) accountTitle.textContent = 'Unable to load account';
+    if (accountMessage) accountMessage.textContent = error.message || 'There was an issue retrieving your Stripe subscription status.';
+    if (accountSummary) accountSummary.hidden = false;
+    if (authPanel) authPanel.hidden = true;
+    if (portalBtn) portalBtn.disabled = false;
+    console.error('Customer status load failed:', error);
+  });
+} else if (authParam) {
+  if (authPanel) authPanel.hidden = true;
+  if (accountSummary) accountSummary.hidden = false;
+  if (accountTitle) accountTitle.textContent = 'Signed in';
+  if (accountMessage) accountMessage.textContent = 'Your login has been detected. If you do not see your email, please sign in again.';
 }
 
 

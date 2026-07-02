@@ -406,14 +406,14 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   position: fixed;
   inset: var(--nav-h) 0 0 0;
   min-height: calc(100vh - var(--nav-h));
-  padding: 1.5rem 1.5rem 1.5rem;
+  padding: 2rem 1.5rem 1.5rem;
   background: var(--cream);
   z-index: 1001;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  gap: 1rem;
+  justify-content: center;
+  gap: 1.5rem;
   opacity: 0;
   pointer-events: none;
   transform: translateY(-12px);
@@ -434,13 +434,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 .mobile-link {
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  padding: 0.4rem 0.85rem;
-  border-radius: 50px;
-  transition: color var(--transition), background var(--transition);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--navy);
+  padding: 0.25rem 1rem;
+  transition: color var(--transition);
 }
 
 .mobile-link:hover { color: var(--amber); }
@@ -537,6 +536,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   justify-content: flex-start;
   gap: 0.35rem;
   margin: 0;
+}
+
+.hero-trial-copy {
+  font-size: 0.92rem;
+  color: rgba(255,255,255,0.74);
+  line-height: 1.5;
+  max-width: 380px;
 }
 
 .rate-amount {
